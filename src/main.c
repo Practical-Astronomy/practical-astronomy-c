@@ -1,0 +1,232 @@
+#include "test/pa_binary.h"
+#include "test/pa_comet.h"
+#include "test/pa_coordinates.h"
+#include "test/pa_datetime.h"
+#include "test/pa_eclipses.h"
+#include "test/pa_moon.h"
+#include "test/pa_planets.h"
+#include "test/pa_sun.h"
+#include <stdbool.h>
+
+void test_datetime() {
+  test_date_of_easter(1914, (TFullDate){4, 12, 1914});
+  test_date_of_easter(1950, (TFullDate){4, 9, 1950});
+  test_date_of_easter(1980, (TFullDate){4, 6, 1980});
+  test_date_of_easter(2003, (TFullDate){4, 20, 2003});
+
+  test_civil_date_to_day_number(1, 1, 2000, 1);
+  test_civil_date_to_day_number(3, 1, 2000, 61);
+  test_civil_date_to_day_number(6, 1, 2003, 152);
+  test_civil_date_to_day_number(11, 27, 2009, 331);
+
+  test_civil_time_to_decimal_hours(18, 31, 27.0, 18.52416667);
+
+  test_decimal_hours_to_civil_time(18.52416667, (TFullTime){18, 31, 27});
+
+  test_local_civil_time_to_universal_time(
+      3, 37, 0, true, 4, 1, 7, 2013, (TFullDateTime){6, 30, 2013, 22, 37, 0});
+
+  test_universal_time_to_local_civil_time(
+      22, 37, 0, true, 4, 30, 6, 2013, (TFullDateTime){7, 1, 2013, 3, 37, 0});
+
+  test_universal_time_to_greenwich_sidereal_time(14, 36, 51.67, 22, 4, 1980,
+                                                 (TFullTime){4, 40, 5.23});
+
+  test_greenwich_sidereal_time_to_universal_time(
+      4, 40, 5.23, 22, 4, 1980,
+      (TFullTimeWarning){14, 36, 51.67, WarningFlag_OK});
+
+  test_greenwich_sidereal_time_to_local_sidereal_time(4, 40, 5.23, -64,
+                                                      (TFullTime){0, 24, 5.23});
+
+  test_local_sidereal_time_to_greenwich_sidereal_time(0, 24, 5.23, -64,
+                                                      (TFullTime){4, 40, 5.23});
+}
+
+void test_coordinates() {
+  test_angle_to_decimal_degrees(182, 31, 27, 182.524167);
+
+  test_decimal_degrees_to_angle(182.524167, (TAngle){182, 31, 27});
+
+  test_right_ascension_to_hour_angle(18, 32, 21, 14, 36, 51.67, false, -4, 22,
+                                     4, 1980, -64, (THourAngle){9, 52, 23.66});
+
+  test_hour_angle_to_right_ascension(9, 52, 23.66, 14, 36, 51.67, false, -4, 22,
+                                     4, 1980, -64,
+                                     (TRightAscension){18, 32, 21});
+
+  test_equatorial_coordinates_to_horizon_coordinates(
+      5, 51, 44, 23, 13, 10, 52,
+      (THorizonCoordinates){283, 16, 15.7, 19, 20, 3.64});
+
+  test_horizon_coordinates_to_equatorial_coordinates(
+      283, 16, 15.7, 19, 20, 3.64, 52,
+      (TEquatorialCoordinates){5, 51, 44, 23, 13, 10});
+
+  test_mean_obliquity_of_the_ecliptic(6, 7, 2009, 23.43805531);
+
+  test_ecliptic_coordinates_to_equatorial_coordinates(
+      139, 41, 10, 4, 52, 31, 6, 7, 2009,
+      (TEquatorialCoordinates2){9, 34, 53.4, 19, 32, 8.52});
+
+  test_equatorial_coordinate_to_ecliptic_coordinate(
+      9, 34, 53.4, 19, 32, 8.52, 6, 7, 2009,
+      (TEclipticCoordinates){139, 41, 9.97, 4, 52, 30.99});
+
+  test_equatorial_coordinate_to_galactic_coordinate(
+      10, 21, 0, 10, 3, 11,
+      (TGalacticCoordinates){232, 14, 52.38, 51, 7, 20.16});
+
+  test_galactic_coordinates_to_equatorial_coordinates(
+      232, 14, 52.38, 51, 7, 20.16,
+      (TEquatorialCoordinates2){10, 21, 0, 10, 3, 11});
+
+  test_angle_between_two_objects(5, 13, 31.7, -8, 13, 30, 6, 44, 13.4, -16, 41,
+                                 11, AngleMeasurementType_HOURS,
+                                 (TAngle){23, 40, 25.86});
+
+  test_rising_and_setting(
+      23, 39, 20, 21, 42, 0, 24, 8, 2010, 64, 30, 0.5667,
+      (TRiseSet){RiseSetStatus_OK, 14, 16, 4, 10, 64.36, 295.64});
+
+  test_correct_for_precession(
+      9, 10, 43, 14, 23, 25, 0.923, 1, 1950, 1, 6, 1979,
+      (TCorrectedPrecession){9, 12, 20.18, 14, 16, 9.12});
+
+  test_nutation_in_ecliptic_longitude_and_obliquity(
+      1, 9, 1988, (TNutation){.001525808, .0025671});
+
+  test_correct_for_aberration(
+      0, 0, 0, 8, 9, 1988, 352, 37, 10.1, -1, 32, 56.4,
+      (TCorrectedEclipticCoordinates){352, 37, 30.45, -1, 32, 56.33});
+
+  test_atmospheric_refraction(
+      23, 14, 0, 40, 10, 0, CoordinateType_ACTUAL, 0.17, 51.2036110, 0, 0, 23,
+      3, 1987, 1, 1, 24, 1012, 21.7,
+      (TCorrectedRefraction){23, 13, 44.74, 40, 19, 45.76});
+
+  test_corrections_for_geocentric_parallax(
+      22, 35, 19, -7, 41, 13, CoordinateType_ACTUAL, 1.019167, -100, 50, 60, 0,
+      -6, 26, 2, 1979, 10, 45, 0,
+      (TCorrectedParallax){22, 36, 43.22, -8, 32, 17.4});
+
+  test_heliographic_coordinates(220, 10.5, 1, 5, 1988,
+                                (THeliographicCoordinates){142.59, -19.94});
+
+  test_carrington_rotation_number(27, 1, 1975, 1624);
+
+  test_selenographic_coordinates1(
+      1, 5, 1988, (TSelenographicSubEarthCoordinates){-4.88, 4.04, 19.78});
+
+  test_selenographic_coordinates2(
+      1, 5, 1988, (TSelenographicSubSolarCoordinates){6.81, 83.19, 1.19});
+}
+
+void test_sun() {
+  test_approximate_position_of_sun(0, 0, 0, 27, 7, 2003, false, 0,
+                                   (TSunPosition){8, 23, 33.73, 19, 21, 14.33});
+
+  test_precise_position_of_sun(0, 0, 0, 27, 7, 1988, false, 0,
+                               (TSunPosition){8, 26, 3.83, 19, 12, 49.72});
+
+  test_sun_distance_and_angular_size(
+      0, 0, 0, 27, 7, 1988, false, 0,
+      (TSunDistanceSize){151920130, 0, 31, 29.93});
+
+  test_sunrise_and_sunset(
+      10, 3, 1986, false, -5, -71.05, 42.37,
+      (TSunriseSunsetInfo){6, 5, 17, 45, 94.83, 265.43, RiseSetStatus_OK});
+
+  test_morning_and_evening_twilight(
+      7, 9, 1979, false, 0, 0, 52, TwilightType_ASTRONOMICAL,
+      (TTwilightInfo){3, 17, 20, 37, TwilightStatus_OK});
+
+  test_equation_of_time(27, 7, 2010, (TEquationOfTime){6, 31.52});
+
+  test_solar_elongation(10, 6, 45, 11, 57, 27, 27.8333333, 7, 2010, 24.78);
+}
+
+void test_planets() {
+  test_approximate_position_of_planet(
+      0, 0, 0, false, 0, 22, 11, 2003, "Jupiter",
+      (TPlanetPosition){11, 11, 13.8, 6, 21, 25.1});
+
+  test_precise_position_of_planet(
+      0, 0, 0, false, 0, 22, 11, 2003, "Jupiter",
+      (TPlanetPosition){11, 10, 30.99, 6, 25, 49.46});
+
+  test_visual_aspects_of_a_planet(
+      0, 0, 0, false, 0, 22, 11, 2003, "Jupiter",
+      (TPlanetVisualAspects){5.59829, 35.1, 0.99, 0, 46, 33.32, 113.2, -2.0});
+}
+
+void test_comet() {
+  test_position_of_elliptical_comet(0, 0, 0, false, 0, 1, 1, 1984, "Halley",
+                                    (TCometPosition){6, 29, 10, 13, 8.13});
+
+  test_position_of_parabolic_comet(
+      0, 0, 0, false, 0, 25, 12, 1977, "Kohler",
+      (TCometPosition){23, 17, 11.53, -33, 42, 26.42, 1.11});
+}
+
+void test_binary_star() {
+  test_binary_star_orbit(1, 1, 1980, "eta-Cor",
+                         (TBinaryStarOrbitalData){318.5, 0.41});
+}
+
+void test_moon() {
+  test_approximate_position_of_moon(
+      0, 0, 0, false, 0, 1, 9, 2003,
+      (TMoonApproximatePosition){14, 12, 42.31, -11, 31, 38.27});
+
+  test_precise_position_of_moon(
+      0, 0, 0, false, 0, 1, 9, 2003,
+      (TMoonPrecisePosition){14, 12, 10.21, -11, 34, 57.83, 367964, 0.993191});
+
+  test_moon_phase(0, 0, 0, false, 0, 1, 9, 2003, AccuracyLevel_APPROXIMATE,
+                  (TMoonPhase){0.22, -71.58});
+
+  test_times_of_new_moon_and_full_moon(
+      false, 0, 1, 9, 2003,
+      (TMoonNewFull){17, 27, 27, 8, 2003, 16, 36, 10, 9, 2003});
+
+  test_moon_dist_ang_diam_hor_parallax(
+      0, 0, 0, false, 0, 1, 9, 2003,
+      (TMoonDistDiameterHP){367964, 0, 32, 0, 59, 35.49});
+
+  test_moonrise_and_moonset(
+      6, 3, 1986, false, -5, -71.05, 42.3667,
+      (TMoonRiseSet){4, 21, 6, 3, 1986, 127.34, 13, 8, 6, 3, 1986, 234.05});
+}
+
+void test_eclipses() {
+  test_lunar_eclipse_occurrence(
+      1, 4, 2015, false, 10,
+      (TLunarEclipseOccurrence){LunarEclipseStatus_CERTAIN, 4, 4, 2015});
+
+  test_lunar_eclipse_circumstances(
+      1, 4, 2015, false, 10,
+      (TLunarEclipseCircumstances){4, 4, 2015, 9, 0, 10, 16, 11, 55, 12, 1, 12,
+                                   7, 13, 46, 15, 1, 1.01});
+
+  test_solar_eclipse_occurrence(
+      1, 4, 2015, false, 0,
+      (TSolarEclipseOccurrence){SolarEclipseStatus_CERTAIN, 20, 3, 2015});
+
+  test_solar_eclipse_circumstances(
+      20, 3, 2015, false, 0, 0, 68.65,
+      (TSolarEclipseCircumstances){20, 3, 2015, 8, 55, 9, 57, 10, 58, 1.016});
+}
+
+int main() {
+  test_datetime();
+  test_coordinates();
+  test_sun();
+  test_planets();
+  test_comet();
+  test_binary_star();
+  test_moon();
+  test_eclipses();
+
+  return (0);
+}
